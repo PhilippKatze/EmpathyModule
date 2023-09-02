@@ -5,6 +5,7 @@ import os
 import sys
 import wave
 import struct
+import sounddevice as sd
 
 
 import librosa
@@ -138,7 +139,8 @@ def trainModel():
 
     df.head(10)
 
-    model.save("model")
+    model.save("model.h5")
+    np.save('X_train.npy', x_train)
 
 
 def noise(data):
@@ -204,39 +206,46 @@ def get_features(path):
 
     return result
 
-def predictEmotion(sample):
-    ModelFilePath = 'features.csv'
-    encoder = OneHotEncoder()
+def predictEmotion(path):
+
+    print("predicting")
+    encoder = OneHotEncoder(handle_unknown='ignore')
+    encoder.fit(np.array(['neutral', 'calm', 'happy', 'sad', 'angry', 'fear', 'disgust', 'surprise']).reshape(1, -1))
+
+    x_train = np.load('X_train.npy')
+    scaler = StandardScaler()
+    x_train = scaler.fit_transform(x_train)
+
+    ModelFilePath = 'model'
     Voice_emotion_Detection = keras.models.load_model(ModelFilePath)
 
-    pred_test__ = Voice_emotion_Detection.predict(sample)
-    y_pred__ = encoder.inverse_transform(pred_test__)
-    print('prediction : ', y_pred__)
+    data_, sample_rate_ = librosa.load(path)
+
+    X_ = np.array(extract_features(data_))
+    X_ = scaler.transform(X_.reshape(1, -1))
+    pred_test_ = Voice_emotion_Detection.predict(np.expand_dims(X_, axis=2))
+    print(pred_test_)
+    y_pred_ = encoder.inverse_transform(pred_test_)
+    print(y_pred_[0][0])  # emotion prediction
+
+    for value, emotion in zip(pred_test_[0], encoder.categories_[0]):
+        print(emotion, f"{value:.10f}")  # predicting values for each emotion
+
+
 
 
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
+    print('press any key to stop recording')
 
-    recorder = PvRecorder(device_index=-1, frame_length=512)
-    audio = []
+    #freq = 44100
+    #duration = 5
+    #recording = sd.rec(int(duration * freq), samplerate=freq, channels=2)
+    #sd.wait()
 
-    try:
-        recorder.start()
-
-        while True:
-            frame = recorder.read()
-            audio.extend(frame)
-    except KeyboardInterrupt:
-        recorder.stop()
-        with wave.open('input', 'w') as f:
-            f.setparams((1, 2, 16000, 512, "NONE", "NONE"))
-            f.writeframes(struct.pack("h" * len(audio), *audio))
-    finally:
-        recorder.delete()
-
-    inputfile = librosa.load('input')
+    #inputfile = librosa.load('input')
     print('audio recorded')
-    predictEmotion(inputfile)
+    predictEmotion('C:/Users/phili/Desktop/dataset/Actor_23/03-01-02-01-02-01-23.wav')
     #trainModel()
 
 
