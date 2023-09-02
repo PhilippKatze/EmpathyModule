@@ -36,7 +36,7 @@ warnings.filterwarnings("ignore", category=DeprecationWarning)
 path = ""
 data, sample_rate = "", 0.1
 
-Ravdess = "C:/Users/phili/Desktop/dataset/"
+Ravdess = "data/"
 Crema = "/kaggle/input/cremad/AudioWAV/"
 Tess = "/kaggle/input/toronto-emotional-speech-set-tess/tess toronto emotional speech set data/TESS Toronto emotional speech set data/"
 Savee = "/kaggle/input/surrey-audiovisual-expressed-emotion-savee/ALL/"
@@ -245,7 +245,7 @@ if __name__ == '__main__':
 
     #inputfile = librosa.load('input')
     print('audio recorded')
-    predictEmotion('C:/Users/phili/Desktop/dataset/Actor_23/03-01-02-01-02-01-23.wav')
+    predictEmotion('data/Actor_23/03-01-02-01-02-01-23.wav')
     #trainModel()
 
 
